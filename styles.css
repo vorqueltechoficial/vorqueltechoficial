@@ -1713,6 +1713,32 @@ footer p {
 }
 
 /* ========== RESPONSIVIDADE ========== */
+
+/* ---- Tablets (ate 1024px) ---- */
+@media (max-width: 1024px) {
+    .timeline {
+        flex-wrap: wrap;
+        row-gap: 3rem;
+    }
+
+    .timeline::before {
+        display: none;
+    }
+
+    .timeline-step {
+        flex: 0 1 45%;
+        min-width: 200px;
+    }
+
+    .diferenciais-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .whatsapp-bot-container {
+        gap: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     header {
         padding: 1rem;
@@ -1804,6 +1830,85 @@ footer p {
     .menu-toggle {
         display: flex;
     }
+
+    /* ---- Como Funciona ---- */
+    #como-funciona {
+        padding: 3.5rem 1.5rem;
+    }
+
+    .timeline {
+        flex-direction: column;
+        align-items: center;
+        gap: 2.5rem;
+    }
+
+    .timeline-step {
+        flex: none;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    /* ---- Diferenciais ---- */
+    #diferenciais {
+        padding: 2rem 1.5rem 3.5rem;
+    }
+
+    /* ---- WhatsApp Bot ---- */
+    #whatsapp-bot {
+        padding: 3.5rem 1.5rem;
+    }
+
+    .whatsapp-bot-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .section-title-left {
+        text-align: center;
+    }
+
+    .whatsapp-bot-list {
+        text-align: left;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .mini-chat-mock {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    /* ---- CTA meio ---- */
+    #cta-meio {
+        padding: 3.5rem 1.5rem;
+    }
+
+    .cta-meio-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .cta-meio-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cta-meio-btn {
+        text-align: center;
+    }
+
+    /* ---- FAQ ---- */
+    #faq {
+        padding: 3.5rem 1.5rem;
+    }
+
+    .faq-question {
+        font-size: 0.9rem;
+        padding: 1rem 1.2rem;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 0 1.2rem 1rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1823,5 +1928,47 @@ footer p {
 
     .section-title {
         font-size: 1.5rem;
+    }
+
+    /* ---- Diferenciais: 1 coluna em telas pequenas ---- */
+    .diferenciais-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .diferencial-item {
+        padding: 1.5rem 1rem;
+    }
+
+    /* ---- Timeline: numeros menores ---- */
+    .timeline-number {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+
+    /* ---- Cards de solucao: padding menor ---- */
+    .service-card {
+        padding: 1.5rem;
+    }
+
+    /* ---- CTA meio ---- */
+    .cta-meio-container h2 {
+        font-size: 1.25rem;
+    }
+
+    .cta-meio-btn {
+        padding: 0.9rem 1.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* ---- WhatsApp bot: mock ainda menor ---- */
+    .mini-chat-mock {
+        max-width: 240px;
+    }
+
+    .whatsapp-bot-text > p,
+    .whatsapp-bot-list li {
+        font-size: 0.9rem;
     }
 }
