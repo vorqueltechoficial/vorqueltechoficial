@@ -1,3 +1,59 @@
+// ========== LAPTOP 3D - CICLO DE TELAS ==========
+function cycleLaptopScreen() {
+    const screenIds = [
+        'codeView',
+        'siteView',
+        'ecommerceView',
+        'qrView',
+        'whatsappView',
+        'instagramView',
+        'brandView'
+    ];
+
+    const screens = screenIds
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+
+    if (screens.length === 0) return;
+
+    let index = 0;
+
+    function showCurrent() {
+        screens.forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+        });
+
+        // Tela de código fica mais tempo (efeito de digitação + cursor)
+        const duration = screens[index].id === 'codeView' ? 4200 : 2300;
+
+        setTimeout(() => {
+            index = (index + 1) % screens.length;
+            showCurrent();
+        }, duration);
+    }
+
+    showCurrent();
+}
+
+window.addEventListener('load', cycleLaptopScreen);
+
+// ========== FAQ ACCORDION ==========
+document.querySelectorAll('.faq-item').forEach(item => {
+    const question = item.querySelector('.faq-question');
+
+    question.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+
+        document.querySelectorAll('.faq-item').forEach(el => {
+            el.classList.remove('active');
+        });
+
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    });
+});
+
 // ========== MENU MOBILE ==========
 const menuToggle = document.getElementById('menuToggle');
 const menu = document.getElementById('menu');
@@ -186,11 +242,11 @@ const observerOptions = {
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            // Se for service-card
+            // Se for service-card: entrada em "flip" 3D
             if (entry.target.classList.contains('service-card')) {
-                entry.target.style.transition = 'all 0.8s ease-out';
+                entry.target.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
                 entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.style.transform = 'rotateX(0deg) translateY(0)';
             }
             // Se for contact-link
             else if (entry.target.classList.contains('contact-link')) {
@@ -215,6 +271,33 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.service-card, .contact-link, .benefit-item').forEach(el => {
     // Começar invisível
     el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
+
+    // Cards de solução comecam "fechados" (flip 3D), o resto sobe normal
+    if (el.classList.contains('service-card')) {
+        el.style.transform = 'rotateX(-90deg) translateY(20px)';
+    } else {
+        el.style.transform = 'translateY(30px)';
+    }
+
     observer.observe(el);
+});
+
+// ========== TILT 3D NOS CARDS DE SOLUCAO (HOVER) ==========
+document.querySelectorAll('.service-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 8;
+        const rotateX = -((y - rect.height / 2) / (rect.height / 2)) * 8;
+
+        card.style.transition = 'transform 0.1s ease-out';
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform 0.4s ease-out';
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) translateY(0)';
+    });
 });
