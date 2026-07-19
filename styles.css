@@ -294,7 +294,7 @@ nav a:hover {
 }
 
 .hero-logo-img {
-    height: 190px;
+    height: 450px;
     width: auto;
     display: block;
 }
@@ -1960,13 +1960,13 @@ footer p {
     }
 
     .hero-logo-img {
-        height: 55px;
+        height: 105px;
     }
 
     .hero-3d {
-        min-height: 200px;
+        min-height: 400px;
         transform: scale(0.55);
-        margin: -72px 0;
+        margin: 20px 0;
     }
 
     .cta-button {
@@ -1975,7 +1975,7 @@ footer p {
     }
 
     .section-title {
-        font-size: 1.5rem;
+        font-size: 1.7rem;
     }
 
     /* ---- Diferenciais: 1 coluna em telas pequenas ---- */
