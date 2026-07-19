@@ -83,6 +83,12 @@ nav {
     gap: 0.2rem;
 }
 
+.logo-img {
+    height: 44px;
+    width: auto;
+    display: block;
+}
+
 .logo .alven {
     font-style: italic;
     transform: skewX(-6deg);
@@ -217,6 +223,10 @@ nav a:hover {
         font-size: 1.4rem;
     }
 
+    .logo-img {
+        height: 34px;
+    }
+
     .menu-toggle {
         display: flex;
     }
@@ -230,6 +240,10 @@ nav a:hover {
     .logo {
         font-size: 1.1rem;
         letter-spacing: 2px;
+    }
+
+    .logo-img {
+        height: 28px;
     }
 
     nav a {
@@ -269,7 +283,7 @@ nav a:hover {
 
 .hero-content h1 {
     font-size: 4.6rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.4rem;
     letter-spacing: 0px;
     animation: slideDown 0.8s ease-out;
     text-transform: none;
@@ -277,6 +291,12 @@ nav a:hover {
     align-items: flex-end;
     justify-content: flex-start;
     gap: 0.3rem;
+}
+
+.hero-logo-img {
+    height: 190px;
+    width: auto;
+    display: block;
 }
 
 .hero-content h1 .alven-text {
@@ -831,9 +851,9 @@ nav a:hover {
 }
 
 .tagline {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     color: #00FF00;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     letter-spacing: 4px;
     animation: slideUp 0.8s ease-out 0.2s both;
     font-weight: 600;
@@ -841,8 +861,8 @@ nav a:hover {
 }
 
 .cta-button {
-    padding: 1rem 2.5rem;
-    font-size: 1.1rem;
+    padding: 1.2rem 3rem;
+    font-size: 1.3rem;
     border: 2px solid #00FF00;
     background: rgba(0, 255, 0, 0.1);
     color: #00FF00;
@@ -1767,6 +1787,21 @@ footer p {
         flex-direction: column;
         text-align: center;
         gap: 2rem;
+        justify-content: center;
+    }
+
+    /* No desktop, "flex: 1 1 420px/350px" define LARGURA (lado a lado).
+       No mobile o layout vira coluna e esses mesmos valores passavam a
+       reservar ALTURA, deixando um vão vazio enorme. Aqui eles voltam a
+       ocupar só a altura real do conteúdo. */
+    .hero-content,
+    .hero-3d {
+        flex: 0 0 auto;
+    }
+
+    #inicio {
+        min-height: auto;
+        padding: 2.5rem 1.5rem;
     }
 
     .hero-content {
@@ -1779,9 +1814,14 @@ footer p {
         justify-content: center;
     }
 
+    .hero-logo-img {
+        height: 80px;
+    }
+
     .hero-3d {
         min-height: 260px;
         transform: scale(0.75);
+        margin: -40px 0;
     }
 
     .tagline {
@@ -1919,9 +1959,14 @@ footer p {
         font-size: 2rem;
     }
 
+    .hero-logo-img {
+        height: 55px;
+    }
+
     .hero-3d {
         min-height: 200px;
         transform: scale(0.55);
+        margin: -72px 0;
     }
 
     .cta-button {

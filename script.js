@@ -47,7 +47,7 @@ function setupLaptopScrollFollow() {
     const hero3d = document.querySelector('.hero-3d');
     if (!hero3d) return;
 
-    const isDesktop = () => window.matchMedia('(min-width: 769px)').matches;
+    const isDesktop = () => window.matchMedia('(min-width: 1900px)').matches;
 
     // Quantos pixels de scroll "gastam" a transição inteira (do lugar original até grudado)
     const scrollRange = 500;
