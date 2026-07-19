@@ -294,7 +294,7 @@ nav a:hover {
 }
 
 .hero-logo-img {
-    height: 450px;
+    height: 250px;
     width: auto;
     display: block;
 }
@@ -1815,7 +1815,8 @@ footer p {
     }
 
     .hero-logo-img {
-        height: 80px;
+        height: 150px;
+        margin-bottom: 100px;
     }
 
     .hero-3d {
