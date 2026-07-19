@@ -37,6 +37,145 @@ function cycleLaptopScreen() {
 
 window.addEventListener('load', cycleLaptopScreen);
 
+// ========== NOTEBOOK 3D: POSIÇÃO PRESA AO SCROLL (SÓ DESKTOP) ==========
+// A posição do notebook é calculada a cada frame como uma função direta do
+// scroll da página (sem duração de animação fixa). Isso faz com que:
+// - a velocidade do movimento dele seja sempre igual à velocidade do scroll do usuário;
+// - se o usuário parar de rolar, o notebook para exatamente ali, sem continuar sozinho;
+// - se o usuário inverter o scroll no meio do caminho, o notebook reage na hora.
+function setupLaptopScrollFollow() {
+    const hero3d = document.querySelector('.hero-3d');
+    if (!hero3d) return;
+
+    const isDesktop = () => window.matchMedia('(min-width: 769px)').matches;
+
+    // Quantos pixels de scroll "gastam" a transição inteira (do lugar original até grudado)
+    const scrollRange = 500;
+
+    let active = false;
+    let placeholder = null;
+    let originalRect = null; // posição do notebook em coordenadas do documento (topo da página)
+
+    function targetPosition() {
+        return {
+            top: Math.max(20, window.innerHeight / 2 - originalRect.height / 2),
+            left: window.innerWidth - originalRect.width - 40
+        };
+    }
+
+    // Captura onde o notebook "deveria" estar (em relação ao documento), usando
+    // o placeholder, que sempre ocupa o lugar dele no fluxo normal da página
+    function captureOriginalRect() {
+        const rect = placeholder.getBoundingClientRect();
+        originalRect = {
+            top: rect.top + window.scrollY,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height
+        };
+    }
+
+    function activate() {
+        if (active || !isDesktop()) return;
+        active = true;
+
+        const rect = hero3d.getBoundingClientRect();
+
+        // Placeholder ocupa o lugar do notebook no layout, pra nada "pular" na página
+        placeholder = document.createElement('div');
+        placeholder.style.width = rect.width + 'px';
+        placeholder.style.height = rect.height + 'px';
+        placeholder.style.flex = window.getComputedStyle(hero3d).flex;
+        hero3d.parentNode.insertBefore(placeholder, hero3d);
+
+        hero3d.style.position = 'fixed';
+        hero3d.style.margin = '0';
+        hero3d.style.zIndex = '5';
+        hero3d.style.transition = 'none'; // nada de animação por tempo: é tudo via scroll
+        hero3d.style.width = rect.width + 'px';
+        hero3d.style.height = rect.height + 'px';
+
+        captureOriginalRect();
+        update();
+    }
+
+    function deactivate() {
+        if (!active) return;
+        active = false;
+
+        hero3d.style.position = '';
+        hero3d.style.top = '';
+        hero3d.style.left = '';
+        hero3d.style.width = '';
+        hero3d.style.height = '';
+        hero3d.style.margin = '';
+        hero3d.style.zIndex = '';
+        hero3d.style.transition = '';
+
+        if (placeholder && placeholder.parentNode) {
+            placeholder.parentNode.removeChild(placeholder);
+        }
+        placeholder = null;
+        originalRect = null;
+    }
+
+    // O coração do efeito: calcula a posição atual como interpolação entre
+    // "onde ele estaria se a página não tivesse esse efeito" (flowTop/flowLeft)
+    // e "onde ele fica grudado" (target), na proporção exata do quanto já rolou
+    function update() {
+        if (!active || !originalRect) return;
+
+        const scrollY = window.scrollY;
+        const progress = Math.min(1, Math.max(0, scrollY / scrollRange));
+        const target = targetPosition();
+
+        const flowTop = originalRect.top - scrollY;
+        const flowLeft = originalRect.left;
+
+        const top = flowTop + (target.top - flowTop) * progress;
+        const left = flowLeft + (target.left - flowLeft) * progress;
+
+        hero3d.style.top = top + 'px';
+        hero3d.style.left = left + 'px';
+    }
+
+    function onScrollOrResize() {
+        if (!isDesktop()) {
+            if (active) deactivate();
+            return;
+        }
+        if (!active) {
+            activate();
+        } else {
+            update();
+        }
+    }
+
+    let ticking = false;
+    function requestUpdate() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            onScrollOrResize();
+            ticking = false;
+        });
+    }
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', () => {
+        // Ao redimensionar, recaptura as posições (mudam com a largura da tela)
+        if (active) {
+            captureOriginalRect();
+        }
+        requestUpdate();
+    });
+
+    // Roda uma vez ao carregar, caso a página já abra rolada
+    onScrollOrResize();
+}
+
+window.addEventListener('load', setupLaptopScrollFollow);
+
 // ========== FAQ ACCORDION ==========
 document.querySelectorAll('.faq-item').forEach(item => {
     const question = item.querySelector('.faq-question');
@@ -72,9 +211,14 @@ document.querySelectorAll('#menu a').forEach(link => {
 });
 
 // ========== HONEYCOMB BACKGROUND ==========
+// Contador de geração: toda vez que a colmeia é recriada (resize), incrementa.
+// Assim, loops antigos (trilhas de luz do mobile) sabem que devem parar.
+let honeycombGeneration = 0;
+
 function createHoneycomb() {
     const container = document.getElementById('honeycomb');
     const spacing = 110;
+    const myGeneration = ++honeycombGeneration;
     
     // Calcular quantos hexágonos precisamos
     const cols = Math.ceil(window.innerWidth / spacing) + 2;
@@ -95,13 +239,23 @@ function createHoneycomb() {
             
             hexagon.style.left = x + 'px';
             hexagon.style.top = y + 'px';
+
+            // Guarda a posição na grade (usado pelas trilhas de luz no mobile
+            // pra saber quais hexágonos são "vizinhos")
+            hexagon.dataset.row = row;
+            hexagon.dataset.col = col;
             
             container.appendChild(hexagon);
         }
     }
     
-    // Adicionar efeito ao mouse
-    addMouseEffect();
+    // Desktop: mantém o efeito de spotlight seguindo o mouse (intacto).
+    // Mobile: não tem mouse, então roda 3 linhas de luz contínuas percorrendo a colmeia.
+    if (window.matchMedia('(max-width: 768px)').matches) {
+        startHexLightFlow(container, container.querySelectorAll('.hexagon'), myGeneration);
+    } else {
+        addMouseEffect();
+    }
 }
 
 // ========== BOTÃO CONHECER SOLUÇÕES ==========
@@ -217,6 +371,176 @@ window.addEventListener('load', createHoneycomb);
 
 // Recriar honeycomb ao redimensionar
 window.addEventListener('resize', createHoneycomb);
+
+// ========== HONEYCOMB - LINHAS DE LUZ CONTÍNUAS (SÓ MOBILE) ==========
+// Como no celular não existe hover de mouse, desenhamos 3 linhas de luz reais (SVG)
+// que viajam continuamente de hexágono em hexágono (2 na paleta verde neon, 1 na
+// dourada), passando por entre os hexágonos e acendendo o hexágono mais próximo
+// conforme passam — parecido com o efeito de "traço de luz" enviado como referência.
+function startHexLightFlow(container, hexagonList, generation) {
+    const hexagons = Array.from(hexagonList);
+    if (hexagons.length === 0) return;
+
+    // Tamanho real do hexágono renderizado nesta tela (muda no breakpoint de 768px)
+    const sampleRect = hexagons[0].getBoundingClientRect();
+    const hexW = sampleRect.width;
+    const hexH = sampleRect.height;
+
+    // Mapa de posição -> { elemento, centro x/y }, usado tanto pra andar pela
+    // colmeia (vizinhos) quanto pra saber onde desenhar a linha
+    const grid = new Map();
+    hexagons.forEach(hex => {
+        const left = parseFloat(hex.style.left);
+        const top = parseFloat(hex.style.top);
+        grid.set(`${hex.dataset.row},${hex.dataset.col}`, {
+            el: hex,
+            x: left + hexW / 2,
+            y: top + hexH / 2
+        });
+    });
+    const allCells = Array.from(grid.values());
+
+    // Vizinhos de uma célula na grade "offset" (linhas pares/ímpares deslocadas),
+    // igual ao padrão de colmeia usado no createHoneycomb
+    function getNeighbors(row, col) {
+        const evenRow = row % 2 === 0;
+        const deltas = evenRow
+            ? [[0, -1], [0, 1], [-1, -1], [-1, 0], [1, -1], [1, 0]]
+            : [[0, -1], [0, 1], [-1, 0], [-1, 1], [1, 0], [1, 1]];
+        return deltas
+            .map(([dr, dc]) => grid.get(`${row + dr},${col + dc}`))
+            .filter(Boolean);
+    }
+
+    function resetHex(hex) {
+        hex.style.opacity = '';
+        hex.style.borderColor = '';
+        hex.style.background = '';
+        hex.style.boxShadow = '';
+    }
+
+    // SVG que fica por cima da colmeia, só pra desenhar as linhas de luz
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    svg.style.overflow = 'visible';
+    svg.style.pointerEvents = 'none';
+    container.appendChild(svg);
+
+    // 3 linhas percorrendo a colmeia: 2 verdes + 1 dourada
+    const trails = [
+        { colorRgb: '0, 255, 0', hopDuration: 260 },
+        { colorRgb: '255, 215, 0', hopDuration: 300 },
+        { colorRgb: '0, 255, 0', hopDuration: 340 }
+    ];
+
+    trails.forEach(config => {
+        const strokeColor = `rgb(${config.colorRgb})`;
+        const glow = `rgba(${config.colorRgb}, 0.9)`;
+
+        // A linha em si (o "traço de luz" que se move, com pontas arredondadas + brilho)
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('stroke', strokeColor);
+        line.setAttribute('stroke-width', '3');
+        line.setAttribute('stroke-linecap', 'round');
+        line.style.filter = `drop-shadow(0 0 6px ${glow}) drop-shadow(0 0 16px ${glow})`;
+        svg.appendChild(line);
+
+        // Rastro de hexágonos que ficam "acesos" logo depois que a linha passa por perto
+        let hexTrail = [];
+        const hexTrailLength = 4;
+
+        function lightHex(cell) {
+            hexTrail.push(cell.el);
+            cell.el.style.borderColor = `rgba(${config.colorRgb}, 0.85)`;
+            cell.el.style.background = `rgba(${config.colorRgb}, 0.12)`;
+            cell.el.style.opacity = '0.75';
+            cell.el.style.boxShadow = `0 0 16px rgba(${config.colorRgb}, 0.5), inset 0 0 10px rgba(${config.colorRgb}, 0.25)`;
+
+            if (hexTrail.length > hexTrailLength) {
+                resetHex(hexTrail.shift());
+            }
+        }
+
+        // Caminho (centros de hexágono) que a linha vai seguindo, gerado sob demanda
+        let path = [allCells[Math.floor(Math.random() * allCells.length)]];
+        let segIndex = 0;
+        let segStart = performance.now();
+
+        function extendPathIfNeeded() {
+            while (path.length < segIndex + 3) {
+                const current = path[path.length - 1];
+                const previous = path[path.length - 2];
+                let neighbors = getNeighbors(
+                    parseInt(current.el.dataset.row, 10),
+                    parseInt(current.el.dataset.col, 10)
+                );
+
+                // Evita voltar direto pro ponto anterior (caminho mais orgânico)
+                if (previous && neighbors.length > 1) {
+                    neighbors = neighbors.filter(n => n.el !== previous.el);
+                }
+
+                path.push(
+                    neighbors.length === 0
+                        ? allCells[Math.floor(Math.random() * allCells.length)]
+                        : neighbors[Math.floor(Math.random() * neighbors.length)]
+                );
+            }
+
+            // Evita que o array cresça pra sempre: descarta pontos já percorridos
+            if (segIndex > 30) {
+                path = path.slice(segIndex - 2);
+                segIndex = 2;
+            }
+        }
+
+        function frame(now) {
+            // Se a colmeia foi recriada (resize/rotação), essa linha antiga some daqui
+            if (generation !== honeycombGeneration) {
+                svg.remove();
+                return;
+            }
+
+            extendPathIfNeeded();
+
+            let progress = (now - segStart) / config.hopDuration;
+
+            if (progress >= 1) {
+                segIndex++;
+                segStart = now;
+                progress = 0;
+                extendPathIfNeeded();
+                lightHex(path[segIndex]);
+            }
+
+            const a = path[segIndex];
+            const b = path[segIndex + 1];
+
+            const headX = a.x + (b.x - a.x) * progress;
+            const headY = a.y + (b.y - a.y) * progress;
+
+            // A "cauda" nasce como um ponto e cresce até virar um traço,
+            // igual ao efeito de referência (linha que cresce e depois recua)
+            const tailProgress = Math.max(0, progress - 0.4);
+            const tailX = a.x + (b.x - a.x) * tailProgress;
+            const tailY = a.y + (b.y - a.y) * tailProgress;
+
+            line.setAttribute('x1', tailX);
+            line.setAttribute('y1', tailY);
+            line.setAttribute('x2', headX);
+            line.setAttribute('y2', headY);
+
+            requestAnimationFrame(frame);
+        }
+
+        lightHex(path[0]);
+        requestAnimationFrame(frame);
+    });
+}
 
 // ========== SMOOTH SCROLL ==========
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
