@@ -57,9 +57,19 @@ function setupLaptopScrollFollow() {
     let originalRect = null; // posição do notebook em coordenadas do documento (topo da página)
 
     function targetPosition() {
+        const vw = window.innerWidth;
+        // Em telas mais estreitas (tablet) não existe folga lateral suficiente pra
+        // ele flutuar em tamanho normal sem tampar o conteúdo — então ali ele fica
+        // menor e grudado num cantinho, em vez de centralizado no meio da tela.
+        const isTablet = vw <= 1024;
+        const scale = isTablet ? 0.5 : 1;
+        const width = originalRect.width * scale;
+        const height = originalRect.height * scale;
+
         return {
-            top: Math.max(20, window.innerHeight / 2 - originalRect.height / 2),
-            left: window.innerWidth - originalRect.width - 40
+            top: isTablet ? 110 : Math.max(20, window.innerHeight / 2 - height / 2),
+            left: vw - width - (isTablet ? 24 : 40),
+            scale
         };
     }
 
@@ -94,6 +104,7 @@ function setupLaptopScrollFollow() {
         hero3d.style.transition = 'none'; // nada de animação por tempo: é tudo via scroll
         hero3d.style.width = rect.width + 'px';
         hero3d.style.height = rect.height + 'px';
+        hero3d.style.transformOrigin = 'top left';
 
         captureOriginalRect();
         update();
@@ -111,6 +122,8 @@ function setupLaptopScrollFollow() {
         hero3d.style.margin = '';
         hero3d.style.zIndex = '';
         hero3d.style.transition = '';
+        hero3d.style.transform = '';
+        hero3d.style.transformOrigin = '';
 
         if (placeholder && placeholder.parentNode) {
             placeholder.parentNode.removeChild(placeholder);
@@ -134,9 +147,11 @@ function setupLaptopScrollFollow() {
 
         const top = flowTop + (target.top - flowTop) * progress;
         const left = flowLeft + (target.left - flowLeft) * progress;
+        const scale = 1 + (target.scale - 1) * progress;
 
         hero3d.style.top = top + 'px';
         hero3d.style.left = left + 'px';
+        hero3d.style.transform = `scale(${scale})`;
     }
 
     function onScrollOrResize() {
