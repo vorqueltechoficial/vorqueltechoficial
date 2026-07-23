@@ -42,7 +42,7 @@ Vorquel-Tech é uma empresa que oferece soluções digitais completas incluindo:
 - Cards com hover effects
 - Animações ao scroll
 
-### 3. **Sobre a Alven Tech**
+### 3. **Sobre a Vorquel Tech**
 - Descrição da empresa
 - Missão, Visão e Valores
 - 4 Benefícios principais com ícones
