@@ -4,7 +4,7 @@ Website profissional da **Vorquel Tech**, empresa especializada em soluções te
 
 ## 🎯 Sobre o Projeto
 
-Vorquel Tech é uma empresa que oferece soluções digitais completas incluindo:
+Vorquel-Tech é uma empresa que oferece soluções digitais completas incluindo:
 - 🎨 Projetos Digitais
 - 🌐 Criação de Websites
 - 🛍️ E-commerce e Catálogos Online
